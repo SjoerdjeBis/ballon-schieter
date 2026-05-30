@@ -3,6 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<link rel="manifest" href="manifest.json">
+<!-- iOS: volledig scherm als je het opslaat op beginscherm -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ballonnen">
+<!-- Android / Chrome -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1a1a2e">
 <title>Boogschutter — Ballonnen Schieten!</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -100,7 +108,12 @@ canvas{display:block;touch-action:none;-webkit-touch-callout:none;user-select:no
     <div class="utile">🌀 Level 7<br><span style="opacity:.55">Stuiter Pijl</span></div>
     <div class="utile">💥 Level 9<br><span style="opacity:.55">Explosieve Pijl</span></div>
   </div>
-  <button class="btn" onclick="startGame()">Speel Nu! 🎯</button>
+  <!-- iOS hint: shown only when on Safari and NOT in standalone mode -->
+  <div id="ios-hint" style="display:none;align-items:center;gap:8px;background:rgba(255,255,255,.1);border-radius:12px;padding:9px 14px;margin-bottom:12px;font-size:12px;color:rgba(255,255,255,.75);max-width:340px;text-align:left">
+    <span style="font-size:22px;flex-shrink:0">📌</span>
+    <span>Tik op <b>Delen</b> → <b>"Zet op beginscherm"</b> voor volledig scherm zonder adresbalk.</span>
+  </div>
+  <button class="btn" onclick="goFS();startGame()">Speel Nu! 🎯</button>
 </div>
 
 <!-- Level complete -->
@@ -146,6 +159,33 @@ canvas{display:block;touch-action:none;-webkit-touch-callout:none;user-select:no
 <script>
 const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
 const W=900,H=600,AX=72,AY=430;
+
+// ── Fullscreen ───────────────────────────────────────────────────
+async function goFS(){
+  try{
+    // Fullscreen API (Android Chrome, Firefox, Desktop)
+    const el=document.documentElement;
+    if(!document.fullscreenElement&&!document.webkitFullscreenElement){
+      if(el.requestFullscreen)      await el.requestFullscreen({navigationUI:'hide'});
+      else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    }
+    // Lock to landscape (Android Chrome, some others)
+    if(screen.orientation&&screen.orientation.lock)
+      await screen.orientation.lock('landscape').catch(()=>{});
+  }catch(e){}
+}
+
+// Detect iOS (Safari doesn't support Fullscreen API — needs "Add to Home Screen")
+const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
+const isStandalone=window.navigator.standalone===true||window.matchMedia('(display-mode: fullscreen)').matches||window.matchMedia('(display-mode: standalone)').matches;
+// Show iOS install hint in menu if not already standalone
+window.addEventListener('DOMContentLoaded',()=>{
+  const hint=document.getElementById('ios-hint');
+  if(hint){
+    if(isIOS&&!isStandalone) hint.style.display='flex';
+    else hint.remove();
+  }
+});
 
 // ── Responsive scaling (safe-area aware) ─────────────────────────
 const wrap=document.getElementById('wrap');
@@ -586,7 +626,7 @@ function hideAll(){['om','olc','ogo','ovi','owp'].forEach(id=>document.getElemen
 function show(id){hideAll();document.getElementById(id).style.display='flex';}
 
 // ── Game flow ─────────────────────────────────────────────────────
-function startGame(){hideAll();lvl=1;score=0;weapon=ARSENAL[0];startLvl();}
+function startGame(){goFS();hideAll();lvl=1;score=0;weapon=ARSENAL[0];startLvl();}
 function startLvl(){
   const cfg=LEVELS[Math.min(lvl-1,9)];
   arrows=cfg.arrows;popped=0;needed=cfg.target;
@@ -600,7 +640,7 @@ function startLvl(){
   if(pendWep){setTimeout(()=>{if(gs==='playing')showWep(pendWep);pendWep=null;},600);}
 }
 function showWep(w){weapon=w;document.getElementById('wi').textContent=w.icon;document.getElementById('wn').textContent=w.name;document.getElementById('wd').textContent=w.desc;show('owp');gs='weapon';updateHUD();}
-function closeWeapon(){hideAll();gs='playing';}
+function closeWeapon(){goFS();hideAll();gs='playing';}
 function showLC(){
   if(gs==='transitioning'||gs==='playing'){
     gs='level_complete';playWin();
@@ -620,10 +660,10 @@ function showLC(){
     show('olc');
   }
 }
-function nextLevel(){if(lvl<10){lvl++;hideAll();startLvl();}else showVic();}
+function nextLevel(){goFS();if(lvl<10){lvl++;hideAll();startLvl();}else showVic();}
 function showGO(){if(gs==='playing'&&popped<needed){gs='game_over';document.getElementById('gos').textContent=`Score: ${score}`;show('ogo');}}
-function retryLevel(){hideAll();startLvl();}
-function gotoMenu(){hideAll();gs='menu';show('om');}
+function retryLevel(){goFS();hideAll();startLvl();}
+function gotoMenu(){goFS();hideAll();gs='menu';show('om');}
 function showVic(){gs='victory';document.getElementById('vis').textContent=`Score: ${score}`;show('ovi');}
 
 // ── Input: Mouse ──────────────────────────────────────────────────
