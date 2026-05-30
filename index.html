@@ -248,8 +248,8 @@ const LEVELS=[
   {n:14, spd:1.35,arrows:9,  target:11, r:27, bombs:0}, // L6 (9×2=18 schoten)
   {n:10, spd:1.45,arrows:12, target:9,  r:27, bombs:3}, // L7 – stuiter pijl + 3 BOMMEN!
   {n:12, spd:1.55,arrows:11, target:10, r:26, bombs:5}, // L8 – 5 bommen, knal niet mis
-  {n:14, spd:1.65,arrows:8,  target:10, r:26, bombs:4}, // L9 – explosieve pijl, 4 bommen
-  {n:12, spd:1.75,arrows:10, target:12, r:25, bombs:4}, // L10 – elke pijl moet raak!
+  {n:18, spd:1.65,arrows:8,  target:14, r:26, bombs:5}, // L9 – explosieve pijl, 5 bommen, gem. 1.75 raak/pijl nodig
+  {n:16, spd:1.85,arrows:9,  target:16, r:24, bombs:6}, // L10 – ALLE ballonnen, 6 bommen, elke pijl moet raak!
 ];
 const ARSENAL=[
   {lvl:1, id:'wood',  icon:'🏹',name:'Houten Pijl',   desc:'De klassieke pijl!',       col:'#C4842B',spd:10,cnt:1,bnc:0,exp:false,rad:0},
@@ -406,7 +406,7 @@ function hitBomb(bm){
   spawnParts(bm.x,bm.y,'#222222',bm.r*.7);
   playBombHit();
   eflash=1;
-  const penalty=3;
+  const penalty=2;
   arrows=Math.max(0,arrows-penalty);
   addPop(bm.x,bm.y-bm.r-8,`💣 -${penalty} pijlen!`,'#FF3333');
   updateHUD();
